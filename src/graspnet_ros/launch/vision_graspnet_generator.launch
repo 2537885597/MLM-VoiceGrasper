@@ -1,0 +1,55 @@
+<launch>
+    <!-- 
+    使用SAM+GroundingDINO视觉处理器与GraspNet的启动文件
+    
+    该启动文件使用GroundingDINO进行文本提示的目标检测，
+    使用SAM进行精确的实例分割。
+    -->
+
+    <!-- 
+    SAM+GroundingDINO视觉决策节点
+    使用GroundingDINO进行目标检测，SAM进行精确分割
+    -->
+    <node name="vision_processor" pkg="graspnet_ros" type="vision_processor.py" output="screen">
+        <!-- 修改: 将这些话题更改为匹配您的相机设置 -->
+        <param name="rgb_topic" value="/camera/color/image_raw"/>
+        <param name="depth_topic" value="/camera/aligned_depth_to_color/image_raw"/>
+        
+        <!-- 修改: GroundingDINO和SAM模型路径 -->
+        <param name="model_dir" value="$(find graspnet_ros)/models"/>
+        
+        <!-- 修改: 文本提示（想检测什么就写什么） -->
+        <!-- 示例: <param name="text_prompt" value="black cup"/> -->
+        <param name="text_prompt" value="doll"/>
+        
+        <!-- 修改: 检测框置信度阈值 -->
+        <param name="box_threshold" value="0.3"/>
+        <!-- 修改: 文本 - 图像匹配阈值 -->
+        <param name="text_threshold" value="0.3"/>
+        <!-- 修改: 触发视觉决策的标志 -->
+        <param name="trigger_vision" value="True"/>
+    </node>
+
+    <!-- 
+    GraspNet抓取位姿生成节点
+    接收SAM+GroundingDINO视觉处理器发布的检测结果并生成抓取位姿
+    -->
+    <node name="graspnet_generator_with_dl" pkg="graspnet_ros" type="graspnet_generator_with_dl.py" 
+          output="screen" 
+          launch-prefix="env PYTHONPATH=/home/rm/realman_ws/src/graspnet-baseline:/home/rm/realman_ws/src/graspnet-baseline/models:/home/rm/realman_ws/src/graspnet-baseline/utils:/home/rm/realman_ws/src/graspnet-baseline/graspnetAPI:/home/rm/realman_ws/src:/opt/ros/noetic/lib/python3/dist-packages:$(env PYTHONPATH) /usr/bin/python3">
+        <!-- 修改: 将这些话题更改为匹配您的相机设置 -->
+        <param name="rgb_topic" value="/camera/color/image_raw"/>
+        <param name="depth_topic" value="/camera/aligned_depth_to_color/image_raw"/>
+        <param name="camera_info" value="/camera/color/camera_info"/>
+        <param name="detection_topic" value="/object_poses"/>
+        
+        <!-- 修改: 将此路径更改为您的GraspNet模型目录 -->
+        <param name="model_dir" value="$(find graspnet_ros)/models/graspnet"/> 
+    </node>
+
+    <!-- 
+    启动RViz可视化（可选）
+    -->
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find graspnet_ros)/rviz/grasp_detection.rviz" required="false"/> -->
+
+</launch>

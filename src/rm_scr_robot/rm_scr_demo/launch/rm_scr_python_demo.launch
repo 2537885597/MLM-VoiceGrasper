@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="rm_scr_python_demo_node" pkg="rm_scr_demo" type="rm_scr_python_demo.py" respawn="false" output="screen">
+  </node>
+
+</launch>

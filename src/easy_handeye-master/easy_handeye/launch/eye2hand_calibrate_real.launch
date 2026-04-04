@@ -1,0 +1,38 @@
+<launch>
+    <arg name="namespace_prefix" default="realman_realsense_handeyecalibration" />
+
+    <!-- <arg name="robot_ip" doc="The IP address of the realman robot" /> -->
+
+    <arg name="marker_size" doc="Size of the ArUco marker used, in meters" default="0.1"/>  <!-- 标记大小 -->
+    <arg name="marker_id" doc="The ID of the ArUco marker used" default="582"/>  <!-- 标记ID -->
+
+    <!-- 1. 启动 Realsense435 -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
+        <!-- 传递align_depth参数：设置深度与彩色图对齐 -->
+        <arg name="align_depth" value="true" />
+    </include>
+
+    <!-- 2. 启动 ArUco -->
+    <node name="aruco_tracker" pkg="aruco_ros" type="single">
+        <remap from="/camera_info" to="/camera/color/camera_info" />
+        <remap from="/image" to="/camera/color/image_raw" />
+        <param name="image_is_rectified" value="true"/>
+        <param name="marker_size"        value="$(arg marker_size)"/>
+        <param name="marker_id"          value="$(arg marker_id)"/>
+        <param name="reference_frame"    value="camera_color_optical_frame"/>
+        <param name="camera_frame"       value="camera_color_optical_frame"/>
+        <param name="marker_frame"       value="camera_marker" />
+    </node>
+
+    <!-- 3. 启动 rm_robot -->
+    <!-- 控制器 -->
+    <include file="$(find rm_control)/launch/rm_control.launch" />
+    <!-- 启动机器人 -->
+    <include file="$(find rm_bringup)/launch/rm_robot.launch" />
+    <!--  启动 tf2_ros 转换发布器  -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="agv_to_arm_broadcaster"
+      args="0 0 0.489 -3.134 1.571 -3.142 baselink_body link_arm_rotary" />
+    <!-- 虚拟启动 -->
+    <!-- <include file="$(find rm_scr_moveit_config)/launch/demo.launch" /> -->
+    <!-- <include file="$(find rm_scr_moveit_config)/launch/moveit_planning_execution.launch" /> -->
+</launch>

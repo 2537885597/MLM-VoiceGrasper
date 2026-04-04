@@ -1,0 +1,74 @@
+rotation_matrix:
+- - 0.14342242681355044
+  - 0.6169543377713881
+  - 0.7738199742782423
+- - 0.06680822144893166
+  - -0.7861556897595872
+  - 0.6144069441383766
+- - 0.987404004971492
+  - -0.03642219877623604
+  - -0.1539699789003106
+translation_vector:
+- -0.49345112279746095
+- 0.13799030127706965
+- 0.0071899815240426415
+homogeneous_matrix:
+- - 0.14342242681355044
+  - 0.6169543377713881
+  - 0.7738199742782423
+  - -0.49345112279746095
+- - 0.06680822144893166
+  - -0.7861556897595872
+  - 0.6144069441383766
+  - 0.13799030127706965
+- - 0.987404004971492
+  - -0.03642219877623604
+  - -0.1539699789003106
+  - 0.0071899815240426415
+- - 0.0
+  - 0.0
+  - 0.0
+  - 1.0
+quaternion:
+  qx: !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - false
+    - true
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    gBnoGF8Y5z8=
+  qy: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    jTxWkRpRzj8=
+  qz: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    KdFn1LqF4z8=
+  qw: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    F+AbUUrbzL8=
+translation:
+  x: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    mLulBLSU378=
+  y: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    yzmTi6qpwT8=
+  z: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Md8S+D1zfT8=

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+    语音助手系统启动文件
+    集成Whisper语音识别、Ollama LLM和Minimax语音合成
+    完整对话流程：麦克风 → voice_control → pcm_audio_data → Whisper ASR → Ollama LLM → Minimax TTS → 播放
+    -->
+
+    <!-- 麦克风唤醒节点（xf_mic_asr_offline_line） -->
+    <node name="wheeltec_mic" pkg="xf_mic_asr_offline_line" type="wheeltec_mic" 
+          output="screen">
+        <param name="usart_port_name" type="string" value="/dev/wheeltec_mic"/>
+    </node>
+
+    <!-- 语音控制节点（xf_mic_asr_offline_line） -->
+    <node name="voice_control" pkg="xf_mic_asr_offline_line" type="voice_control" 
+          output="screen">
+        <param name="seconds_per_order" value="2"/>
+    </node>
+
+    <!-- 语音对话节点（完整流程） -->
+    <node name="voice_conversation_node" pkg="voice_assistant" type="voice_conversation_node.py" 
+          output="screen">
+        <param name="asr_model" value="base"/>
+        <param name="ollama_url" value="http://localhost:11434/v1"/>
+        <param name="llm_model" value="qwen3:4b"/>
+        <!-- Minimax group_id API密钥 是长字符串 直接写死在脚本中 -->
+    </node>
+
+    <!-- 以下节点已废弃，由voice_conversation_node替代 -->
+    <!-- 
+    <node name="whisper_asr" pkg="voice_assistant" type="whisper_asr.py" 
+          output="screen">
+        <param name="model" value="base"/>
+    </node>
+
+    <node name="minimax_tts" pkg="voice_assistant" type="minimax_tts.py" 
+          output="screen">
+        <param name="group_id" value="1891387212730220598"/>
+        <param name="api_key" value="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLmtbfonrrnlKjmiLdfMzQ3Nzk3MjcwOTEzMDU2NzY5IiwiVXNlck5hbWUiOiLmtbfonrrnlKjmiLdfMzQ3Nzk3MjcwOTEzMDU2NzY5IiwiQWNjb3VudCI6IiIsIlN1YmplY3RJRCI6IjE4OTEzODcyMTI3Mzg2MDkyMDYiLCJQaG9uZSI6IjE5ODU5Nzc2NTU4IiwiR3JvdXBJRCI6IjE4OTEzODcyMTI3MzAyMjA1OTgiLCJQYWdlTmFtZSI6IiIsIk1haWwiOiIyNTM3ODg1NTk3QHFxLmNvbSIsIkNyZWF0ZVRpbWUiOiIyMDI1LTAzLTIxIDE5OjU1OjUwIiwiVG9rZW5UeXBlIjoxLCJpc3MiOiJtaW5pbWF4In0.dSJNVnpMYUorisFR6k_3mPLCFbGN6S28xzzhPfJ4Rqd8A6eyaTXq64cHzEMERqnbQLzIlX71TNLM0yGVE1R8s8sVZ0VqPCeXKkYX0z6mOSfSmKUrYvywYbVQ8fkVCftfzxlMbi5DU6sKJ7-jHh99cift3jOD0gnon-t7Lg-CT7EbwY8YMX3_iir9e75HtYpk0pCL9qqaoL9ndN1g7CXc3iGImErjnQUGKJpjjou1P3sqjqtdsTISRr0q2U2iZw1m2wFa98MdurSGXxlCR7Btd76kLw2QIS7DJmkuVYrDQ0ZBAR9vSLpi3WESIv16MT2aCCaez9eOYcRCWk_ykXgq8g"/>
+    </node>
+    -->
+
+</launch>

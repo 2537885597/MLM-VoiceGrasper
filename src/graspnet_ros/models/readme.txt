@@ -1,0 +1,1 @@
+graspnet、segment-anything、GroundingDINO 预训练模型权重可以分别在对应官方github页面下载
