@@ -1,0 +1,4 @@
+# ninja log v7
+1	2009	1773908709935940740	/home/rm/realman_ws/src/graspnet-baseline/knn/build/temp.linux-aarch64-cpython-38/home/rm/realman_ws/src/graspnet-baseline/knn/src/cuda/knn.o	cd4cbe6a99382a09
+0	60066	1773908709935940740	/home/rm/realman_ws/src/graspnet-baseline/knn/build/temp.linux-aarch64-cpython-38/home/rm/realman_ws/src/graspnet-baseline/knn/src/cpu/knn_cpu.o	a9a814724b98efb4
+1	60694	1773908709935940740	/home/rm/realman_ws/src/graspnet-baseline/knn/build/temp.linux-aarch64-cpython-38/home/rm/realman_ws/src/graspnet-baseline/knn/src/vision.o	77d655f56f5e2613

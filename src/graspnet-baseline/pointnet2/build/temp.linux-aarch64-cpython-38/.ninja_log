@@ -1,0 +1,12 @@
+# ninja log v7
+1	52066	1773908593219385332	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/ball_query_gpu.o	6ab26510073909e1
+4	53355	1773908593223385164	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/interpolate_gpu.o	c2f5d22e5424bac6
+3	53667	1773908593219385332	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/cylinder_query_gpu.o	c65661709b898356
+4	54194	1773908593223385164	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/group_points_gpu.o	26f0eaa5cf676545
+5	54582	1773908593223385164	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/sampling_gpu.o	e509e0eeba28a1f5
+1	72026	1773908593219385332	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/ball_query.o	af7b2a0ce1986a96
+3	72373	1773908593219385332	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/group_points.o	413b67d41ef27fc5
+4	72620	1773908593223385164	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/interpolate.o	6650c710767cdd79
+2	73010	1773908593219385332	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/cylinder_query.o	15e48299dddfceb
+5	73916	1773908593223385164	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/sampling.o	a7a363031c92ca9b
+2	75376	1773908593219385332	/home/rm/realman_ws/src/graspnet-baseline/pointnet2/build/temp.linux-aarch64-cpython-38/_ext_src/src/bindings.o	adc4f8a1cf4e7fe1
