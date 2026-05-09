@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mlm_decision</name>
+  <version>0.1.0</version>
+  <description>MLM 决策中枢包，基于 Qwen3-VL-8B 多模态大模型实现意图理解和决策</description>
+
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>voice_assistant</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+  </export>
+</package>

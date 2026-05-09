@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>xf_mic_asr_offline_line</name>
+  <version>0.1.0</version>
+  <description>Xunfei microphone and ASR offline line package</description>
+
+  <maintainer email="nie@todo.todo">nie</maintainer>
+
+  <license>MIT</license>
+
+  <url type="website">http://wiki.ros.org/xf_mic_package</url>
+
+  <author email="nie@todo.todo">Nie</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>mic_msg</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>mic_msg</build_export_depend>
+  <build_export_depend>std_srvs</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>mic_msg</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+  </export>
+</package>

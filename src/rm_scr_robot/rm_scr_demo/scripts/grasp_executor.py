@@ -71,7 +71,7 @@ class GraspExecutor:
         #     sys.exit(-1)
 
         # 初始化手眼标定变换矩阵（直接加载保存的结果）
-        self.homo_mat = load_hand_eye_calib(use_homo=True)
+        self.homo_mat = load_hand_eye_calib()
         self.R_handeye = self.homo_mat[:3, :3]
         self.t_handeye = self.homo_mat[:3, 3].reshape(3, 1)
         rospy.loginfo("手眼标定矩阵加载完成")
@@ -101,14 +101,14 @@ class GraspExecutor:
         # 相机坐标系（与GraspNet发布一致）
         default_pose.header.frame_id = "camera_color_optical_frame"
         # 日志中的抓取位姿
-        default_pose.pose.position.x = -0.021
-        default_pose.pose.position.y = 0.096
-        default_pose.pose.position.z = 0.866
+        default_pose.pose.position.x = 0.063
+        default_pose.pose.position.y = 0.039
+        default_pose.pose.position.z = 0.652
         # 四元数
-        default_pose.pose.orientation.x = -0.348
-        default_pose.pose.orientation.y = -0.397
-        default_pose.pose.orientation.z = -0.561
-        default_pose.pose.orientation.w = 0.638
+        default_pose.pose.orientation.x = -0.009
+        default_pose.pose.orientation.y = -0.008
+        default_pose.pose.orientation.z = -0.744
+        default_pose.pose.orientation.w = 0.668
         return default_pose
     
     def grasp_callback(self, msg):
@@ -128,8 +128,19 @@ class GraspExecutor:
         self.execute_grasp()
         
         # 抓取完成后执行释放
-        rospy.sleep(3.0)  # 等待抓取动作完成
-        self.execute_release()
+        rospy.sleep(2.0)  # 等待抓取动作完成
+
+        # 释放前，将机械臂移动到抓取位姿的左方
+        res, joint, pose, arm_err = self.robot.Get_Current_Arm_State()
+        pose[2] -= 0.08     # z轴 向左
+        ret = self.robot.Movej_P_Cmd(pose, 20, 20)
+        rospy.sleep(2.0)
+
+        # 释放灵巧手，将机械臂移动到预备位姿
+        # self.execute_release()
+        # rospy.sleep(2.0)
+        pose = [-40.0, 40.0, 40.0, 40.0, 40.0, 40.0]
+        ret = self.robot.Movej_Cmd(pose, 20, 20)
         
         # 清空抓取位姿
         self.current_grasp = None
@@ -149,7 +160,19 @@ class GraspExecutor:
             # 核心：调用封装方法，赋值缓存变量
             self.current_grasp = self._get_default_grasp_pose()
             self.execute_grasp()
-            rospy.Timer(rospy.Duration(3), lambda _: self.execute_release(), oneshot=True)
+            rospy.sleep(2.0)  # 等待抓取动作完成
+
+            # 释放前，将机械臂移动到抓取位姿的左方
+            res, joint, pose, arm_err = self.robot.Get_Current_Arm_State()
+            pose[2] -= 0.08     # z轴 向左
+            ret = self.robot.Movej_P_Cmd(pose, 20, 20)
+            rospy.sleep(2.0)
+            
+            # # 释放灵巧手，将机械臂移动到预备位姿
+            # self.execute_release()
+            # rospy.sleep(2.0)
+            pose = [-40.0, 40.0, 40.0, 40.0, 40.0, 40.0]
+            ret = self.robot.Movej_Cmd(pose, 20, 20)
             rospy.Timer(rospy.Duration(3.5), lambda _: setattr(self, 'current_grasp', None), oneshot=True)
         elif msg.data == "release":
             rospy.loginfo("收到释放指令")
@@ -301,10 +324,16 @@ class GraspExecutor:
         ]
         euler = tf_trans.euler_from_quaternion(q)
         
+        # ❌ 错误：删除这行！机械臂不需要角度，强行转换会导致数值爆炸
         # 转换为度数
         rx = np.degrees(euler[0])
         ry = np.degrees(euler[1])
         rz = np.degrees(euler[2])
+
+        # ✅ 正确：直接使用弧度
+        rx = euler[0]
+        ry = euler[1]
+        rz = euler[2]
         
         return [x, y, z, rx, ry, rz]
     
@@ -335,14 +364,15 @@ class GraspExecutor:
         
         # 3. 进行IK规划
         rospy.loginfo("进行逆运动学规划...")
-        ret = self.robot.Movep_Follow(robot_pose)
+        # ret = self.robot.Movep_Follow(robot_pose)
+        ret = self.robot.Movej_P_Cmd(robot_pose, 20, 20)
         if ret:
             rospy.logerr(f"逆运动学规划失败: {ret}")
             return
         rospy.loginfo("逆运动学规划成功")
         
         # 等待机械臂运动完成
-        rospy.sleep(5.0)
+        rospy.sleep(2.0)
         
         # 4. 控制灵巧手抓取
         rospy.loginfo("控制灵巧手抓取...")
@@ -376,7 +406,7 @@ class GraspExecutor:
         功能:
             等待抓取指令并执行（可选的手动触发方式）
         """
-        rospy.loginfo("抓取执行器启动，等待抓取指令...")
+        rospy.loginfo_once("抓取执行器启动，等待抓取指令...")
         
         # 发布抓取指令示例
         command_pub = rospy.Publisher('/grasp_command', String, queue_size=1)
@@ -384,7 +414,7 @@ class GraspExecutor:
         # 等待抓取指令
         rate = rospy.Rate(1.0)
         while not rospy.is_shutdown():
-            rospy.loginfo_throttle(10, "等待抓取指令或抓取位姿...")
+            rospy.loginfo_throttle(20, "等待抓取指令或抓取位姿...")
             rate.sleep()
 
 

@@ -1,0 +1,248 @@
+2026-04-10 20:19:18 - libs.auxiliary - INFO: create folder eye_hand_data/data20260410
+2026-04-10 20:19:18 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.1.18']
+2026-04-10 20:19:21 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.10.18']
+2026-04-10 20:19:21 - __main__ - INFO: robot_ip:192.168.10.18
+2026-04-10 20:19:21 - __main__ - INFO: response:{"change_work_frame":true,"command":"set_change_work_frame"}
+
+2026-04-10 20:19:21 - __main__ - ERROR: 相机连接异常：xioctl(VIDIOC_S_FMT) failed, errno=16 Last Error: Device or resource busy
+2026-04-10 20:19:27 - libs.auxiliary - INFO: create folder eye_hand_data/data2026041001
+2026-04-10 20:19:27 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.1.18']
+2026-04-10 20:19:30 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.10.18']
+2026-04-10 20:19:30 - __main__ - INFO: robot_ip:192.168.10.18
+2026-04-10 20:19:30 - __main__ - INFO: response:{"change_work_frame":true,"command":"set_change_work_frame"}
+
+2026-04-10 20:19:31 - __main__ - INFO: 开始手眼标定程序，当前程序版号V1.0.0
+2026-04-10 20:19:52 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[122486,-56200,-91284,175034,21558,347972],"pose":[-187978,305435,36600,-3055,175,-708],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:19:52 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:21:13 - libs.auxiliary - INFO: create folder eye_hand_data/data2026041002
+2026-04-10 20:21:13 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.1.18']
+2026-04-10 20:21:16 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.10.18']
+2026-04-10 20:21:16 - __main__ - INFO: robot_ip:192.168.10.18
+2026-04-10 20:21:16 - __main__ - INFO: response:{"change_work_frame":true,"command":"set_change_work_frame"}
+
+2026-04-10 20:21:16 - __main__ - INFO: 开始手眼标定程序，当前程序版号V1.0.0
+2026-04-10 20:21:21 - __main__ - INFO: response:{"arm_state":{"arm_err":0,"joint":[122487,-56201,-91284,175036,21563,347974],"pose":[-187975,305412,36588,-3055,175,-708],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:21:21 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:21:21 - __main__ - INFO: ===采集第1次数据！
+2026-04-10 20:21:32 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[121272,-56204,-95653,175020,21715,347971],"pose":[-167250,286046,26416,-3078,99,-732],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:21:32 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:21:32 - __main__ - INFO: ===采集第2次数据！
+2026-04-10 20:21:55 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[121252,-56199,-89524,175008,20543,347969],"pose":[-188563,320870,41944,-3042,221,-726],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:21:55 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:21:55 - __main__ - INFO: ===采集第3次数据！
+2026-04-10 20:21:57 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[116742,-56197,-93584,166010,20570,347972],"pose":[-143901,318156,32299,-2988,125,-662],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:21:57 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:21:57 - __main__ - INFO: ===采集第4次数据！
+2026-04-10 20:21:58 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[116438,-65220,-93832,166024,20556,347978],"pose":[-125082,284407,-20179,-3057,-21,-672],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:21:58 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:21:58 - __main__ - INFO: ===采集第5次数据！
+2026-04-10 20:22:01 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[119562,-65188,-83452,166043,20569,347986],"pose":[-172536,333805,82,-2980,143,-613],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:01 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:01 - __main__ - INFO: ===采集第6次数据！
+2026-04-10 20:22:03 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[121896,-68947,-80766,166036,17689,341501],"pose":[-192042,332515,-16442,-2958,155,-452],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:03 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:03 - __main__ - INFO: ===采集第7次数据！
+2026-04-10 20:22:06 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[115637,-60093,-77130,165982,17678,341452],"pose":[-178439,401123,58836,-2835,337,-530],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:06 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:06 - __main__ - INFO: ===采集第8次数据！
+2026-04-10 20:22:10 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[111905,-62859,-80072,150739,16987,341505],"pose":[-133368,397706,31578,-2762,163,-370],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:10 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:10 - __main__ - INFO: ===采集第9次数据！
+2026-04-10 20:22:14 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[112252,-57569,-75794,143872,19772,341493],"pose":[-140234,433582,87864,-2600,168,-265],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:14 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:15 - __main__ - INFO: ===采集第10次数据！
+2026-04-10 20:22:17 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[108917,-58731,-76228,146237,19774,343516],"pose":[-114557,434308,75953,-2646,191,-390],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:17 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:17 - __main__ - INFO: ===采集第11次数据！
+2026-04-10 20:22:20 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[109801,-52509,-77343,146237,19709,343526],"pose":[-124738,441885,120544,-2577,250,-359],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:20 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:20 - __main__ - INFO: ===采集第12次数据！
+2026-04-10 20:22:25 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[112000,-55586,-89540,146245,19706,343527],"pose":[-114048,368554,52007,-2779,73,-354],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:25 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:25 - __main__ - INFO: ===采集第13次数据！
+2026-04-10 20:22:27 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[112011,-55616,-94251,146223,19699,343480],"pose":[-103606,342547,38722,-2840,17,-356],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:27 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:27 - __main__ - INFO: ===采集第14次数据！
+2026-04-10 20:22:32 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[117599,-55603,-85893,146221,17234,343546],"pose":[-165363,377661,65399,-2717,154,-235],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:32 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:32 - __main__ - INFO: ===采集第15次数据！
+2026-04-10 20:22:35 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[109481,-60358,-94500,152337,14155,344897],"pose":[-97912,335506,9712,-2910,87,-499],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:35 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:35 - __main__ - INFO: ===采集第16次数据！
+2026-04-10 20:22:37 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[118675,-60305,-91138,167174,14246,346441],"pose":[-167517,325922,16221,-2979,205,-606],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:37 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:37 - __main__ - INFO: ===采集第17次数据！
+2026-04-10 20:22:39 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[118663,-66121,-90661,167200,4831,346449],"pose":[-175423,327616,-12416,-2977,280,-591],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:39 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:39 - __main__ - INFO: ===采集第18次数据！
+2026-04-10 20:22:42 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[118689,-54157,-90672,167183,4834,346434],"pose":[-196829,366391,70068,-2870,463,-551],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:42 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:42 - __main__ - INFO: ===采集第19次数据！
+2026-04-10 20:22:48 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[108639,-53269,-89274,141245,4869,342170],"pose":[-128219,408806,83509,-2612,272,-201],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:48 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:48 - __main__ - INFO: ===采集第20次数据！
+2026-04-10 20:22:50 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[108639,-53322,-100251,141321,4868,342132],"pose":[-108001,348809,46352,-2780,172,-239],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:22:50 - __main__ - INFO: 获取状态：失败，None
+2026-04-10 20:22:50 - __main__ - INFO: ===采集第21次数据！
+2026-04-10 20:23:14 - __main__ - INFO: 读 eye_hand_data/data2026041002/1.jpg
+2026-04-10 20:23:14 - __main__ - INFO: 读 eye_hand_data/data2026041002/2.jpg
+2026-04-10 20:23:14 - __main__ - INFO: 读 eye_hand_data/data2026041002/3.jpg
+2026-04-10 20:23:14 - __main__ - INFO: 读 eye_hand_data/data2026041002/4.jpg
+2026-04-10 20:23:14 - __main__ - INFO: 读 eye_hand_data/data2026041002/5.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/6.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/7.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/8.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/9.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/10.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/11.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/12.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/13.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/14.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/15.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/16.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/17.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/18.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/19.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/20.jpg
+2026-04-10 20:23:15 - __main__ - INFO: 读 eye_hand_data/data2026041002/21.jpg
+2026-04-10 20:25:20 - libs.auxiliary - INFO: create folder eye_hand_data/data20260410
+2026-04-10 20:25:20 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.1.18']
+2026-04-10 20:25:23 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.10.18']
+2026-04-10 20:25:23 - __main__ - INFO: robot_ip:192.168.10.18
+2026-04-10 20:25:23 - __main__ - INFO: response:{"change_work_frame":true,"command":"set_change_work_frame"}
+
+2026-04-10 20:25:23 - __main__ - INFO: 开始手眼标定程序，当前程序版号V1.0.0
+2026-04-10 20:25:30 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[108650,-53326,-104811,147318,2986,346754],"pose":[-104340,324316,35808,-2876,213,-420],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:29:33 - libs.auxiliary - INFO: create folder eye_hand_data/data2026041001
+2026-04-10 20:29:33 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.1.18']
+2026-04-10 20:29:37 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.10.18']
+2026-04-10 20:29:37 - __main__ - INFO: robot_ip:192.168.10.18
+2026-04-10 20:29:37 - __main__ - INFO: response:{"change_work_frame":true,"command":"set_change_work_frame"}
+
+2026-04-10 20:29:37 - __main__ - INFO: 开始手眼标定程序，当前程序版号V1.0.0
+2026-04-10 20:29:39 - __main__ - INFO: response:{"arm_state":{"arm_err":0,"joint":[108650,-53327,-104809,147323,2941,346786],"pose":[-104447,324399,35839,-2876,214,-420],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:29:39 - __main__ - INFO: ===采集第1次数据！
+2026-04-10 20:29:41 - __main__ - INFO: response:{"arm_state":{"arm_err":0,"joint":[108650,-53327,-104809,147322,2940,346786],"pose":[-104450,324401,35840,-2876,214,-420],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:29:41 - __main__ - INFO: ===采集第2次数据！
+2026-04-10 20:30:06 - libs.auxiliary - INFO: create folder eye_hand_data/data20260410
+2026-04-10 20:30:06 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.1.18']
+2026-04-10 20:30:10 - libs.auxiliary - INFO: command:['ping', '-c', '1', '192.168.10.18']
+2026-04-10 20:30:10 - __main__ - INFO: robot_ip:192.168.10.18
+2026-04-10 20:30:10 - __main__ - INFO: response:{"change_work_frame":true,"command":"set_change_work_frame"}
+
+2026-04-10 20:30:10 - __main__ - INFO: 开始手眼标定程序，当前程序版号V1.0.0
+2026-04-10 20:30:16 - __main__ - INFO: response:{"command":"start_drag_teach","drag_teach":true}
+{"command":"stop_drag_teach","drag_teach":true}
+{"arm_state":{"arm_err":0,"joint":[114837,-53352,-104867,147479,3007,346959],"pose":[-138460,310727,35499,-2878,213,-319],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:30:16 - __main__ - INFO: ===采集第1次数据！
+2026-04-10 20:30:17 - __main__ - INFO: response:{"arm_state":{"arm_err":0,"joint":[114838,-53350,-104865,147475,3004,346955],"pose":[-138480,310741,35513,-2878,213,-319],"sys_err":0},"state":"current_arm_state"}
+
+2026-04-10 20:30:17 - __main__ - INFO: ===采集第2次数据！
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/1.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/2.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/3.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/4.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/5.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/6.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/7.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/8.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/9.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/10.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/11.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/12.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/13.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/14.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/15.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/16.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/17.jpg
+2026-04-10 20:31:47 - __main__ - INFO: 读 eye_hand_data/data20260410/18.jpg
+2026-04-10 20:31:49 - __main__ - INFO: 旋转矩阵是:
+ [[-0.11896494  0.99184004 -0.04583309]
+ [ 0.03806153  0.05068249  0.99798928]
+ [ 0.99216867  0.11698126 -0.04378039]]
+2026-04-10 20:31:49 - __main__ - INFO: 平移向量是:
+ [[-0.2839262 ]
+ [-0.19137774]
+ [ 0.26476699]]
+2026-04-10 20:31:49 - __main__ - INFO: 四元数是：
+ [ 0.46747539  0.5507785   0.50608845 -0.47115209]

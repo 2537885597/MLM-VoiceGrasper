@@ -33,7 +33,9 @@ class planning:
 
     def IK(self, input_pose):
         """逆运动学：位姿控制"""
-        ret = self.robot.Movep_Follow(input_pose)
+        # ret = self.robot.Movep_Follow(input_pose)
+        ret = self.robot.Movej_P_Cmd(input_pose, 20, 20)
+
         if ret:
             print(f"❌ 逆运动失败：{ret}")
         else:

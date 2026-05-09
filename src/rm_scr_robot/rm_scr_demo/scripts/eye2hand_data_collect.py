@@ -39,8 +39,8 @@ def callback(frame):
             # 将新行附加到文件的末尾
             f.write(new_line)
 
-        count += 1
         cv2.imwrite(os.path.join(cam0_path, str(count) + '.jpg'), cv_img)
+        count += 1
         print(f"已保存第{count}张照片")  # 打印保存的照片数量
     else:
         pass

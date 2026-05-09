@@ -25,6 +25,7 @@ import cv2
 import numpy as np
 import message_filters
 from sensor_msgs.msg import Image, CameraInfo
+from std_msgs.msg import String
 from cv_bridge import CvBridge
 
 # 导入自定义消息类型
@@ -173,7 +174,7 @@ class SAMGroundingDINOVisualDecision:
                 else:
                     rospy.logwarn_throttle(10, "SAM分割未返回有效像素")
                     masks.append(None)
-            
+
             # 处理检测结果
             detections = []
             for i, (box_abs, conf, phrase) in enumerate(zip(boxes_abs, logits, phrases)):
@@ -263,7 +264,11 @@ class Detector3DNode:
         self.text_prompt = rospy.get_param('~text_prompt', 'object')
         self.box_threshold = rospy.get_param('~box_threshold', 0.3)
         self.text_threshold = rospy.get_param('~text_threshold', 0.3)
-        self.trigger_vision = rospy.get_param('~trigger_vision', True)
+        self.trigger_vision = rospy.get_param('~trigger_vision', False)
+        
+        # 订阅 MLM 发布的抓取目标物体名称（动态更新 text_prompt）
+        self.target_sub = rospy.Subscriber('/grasp_target_name', String, self.target_callback, queue_size=10)
+        rospy.loginfo("已订阅/grasp_target_name 话题，等待 MLM 发布的抓取目标物体名称...")
         
         # 初始化图像桥接器
         self.bridge = CvBridge()
@@ -370,9 +375,23 @@ class Detector3DNode:
         self.rgb_pub.publish(rgb_msg)
         self.depth_pub.publish(depth_msg)
 
+    def target_callback(self, msg):
+        """
+        MLM 发布的抓取目标回调
+        
+        参数:
+            msg: String 消息，包含抓取目标物体名称
+        """
+        if msg.data:
+            # 设置视觉决策器的文本提示
+            self.decision_maker.set_text_prompt(msg.data)
+            rospy.loginfo(f"收到 MLM 抓取目标物体名称：{msg.data}")
+            # 触发视觉决策处理
+            self.trigger_vision = True
+    
     def image_callback(self, rgb_msg, depth_msg):
         """
-        RGB-D图像回调函数
+        RGB-D 图像回调函数
         
         功能:
             处理接收到的RGB图像和深度图像:

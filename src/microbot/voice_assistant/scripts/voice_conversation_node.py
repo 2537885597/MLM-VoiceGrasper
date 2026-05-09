@@ -193,7 +193,7 @@ class VoiceConversationNode:
                 stream=False,
                 options={
                     "temperature": 0.7,
-                    "max_tokens": 512
+                    "max_tokens": 2048
                 }
             )
 
@@ -275,8 +275,8 @@ class VoiceConversationNode:
                 self.play_process.terminate()
                 self.play_process.wait()
             
-            # 直接播放MP3格式，无需转换（Minimax TTS返回的是32kHz MP3）
-            # aplay支持MP3格式，无需转换为WAV
+            # 直接播放WAV格式，（Minimax TTS返回的是32kHz MP3）
+            # aplay支持WAV格式
             self.play_process = subprocess.Popen(
                 ['aplay', audio_path],
                 stdout=subprocess.PIPE,

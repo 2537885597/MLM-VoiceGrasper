@@ -20,13 +20,14 @@
         
         <!-- 修改: 文本提示（想检测什么就写什么） -->
         <!-- 示例: <param name="text_prompt" value="black cup"/> -->
-        <param name="text_prompt" value="doll"/>
+        <param name="text_prompt" value="cup"/>
         
         <!-- 修改: 检测框置信度阈值 -->
         <param name="box_threshold" value="0.3"/>
         <!-- 修改: 文本 - 图像匹配阈值 -->
         <param name="text_threshold" value="0.3"/>
-        <!-- 修改: 触发视觉决策的标志 -->
+        
+        <!-- 修改: 触发视觉决策的标志 可以手动触发 执行一次 用于调试 默认False -->
         <param name="trigger_vision" value="True"/>
     </node>
 

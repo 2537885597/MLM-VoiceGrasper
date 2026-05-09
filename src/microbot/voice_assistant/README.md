@@ -1,231 +1,288 @@
-# 语音助手系统使用说明
-
-## 系统概述
-
-这个语音助手系统完全替代了原来的AIUI语音识别系统，使用以下技术栈：
-
-- **语音识别 (ASR)**: Whisper模型（本地运行）
-- **语音合成 (TTS)**: Minimax API
-- **音频采集**: PyAudio（直接访问麦克风）
+# 模块化语音视觉交互系统
 
 ## 系统架构
 
+本系统采用模块化设计，将功能拆分为独立的节点，降低耦合度，提高可维护性。
+
+### 核心组件
+
 ```
-麦克风 → audio_publisher → /audio/audio_data
-                              ↓
-                         whisper_asr
-                              ↓
-                         /audio/asr_result
-                              ↓
-                    voice_assistant_system
-                              ↓
-                         /tts_request
-                              ↓
-                         minimax_tts
-                              ↓
-                         /tts_response
+麦克风 → 语音识别 (Whisper ASR) → 语音识别文本
+                                      ↓
+Realsense RGB 图像 → MLM 决策中枢 (Qwen3-VL-8B)
+                                      ↓
+         ┌────────────┴────────────┐
+         ↓                         ↓
+   图像描述技能              视觉抓取技能
+         ↓                         ↓
+      TTS 播放              ┌──────┴──────┐
+                          ↓               ↓
+                   方案 1: GraspNet    方案 2: 简化方案
+                          ↓               ↓
+                   GraspNet 位姿      GroundingDINO+深度
+                          ↓               ↓
+                          └──────┬────────┘
+                                 ↓
+                        手眼标定 + grasp_executor
+                                 ↓
+                          机械臂抓取
 ```
 
-## 安装依赖
+## 节点说明
 
-### Python依赖
+### 1. Whisper ASR 节点 (`whisper_asr.py`)
+
+**功能**：麦克风音频 → Whisper ASR → 发布语音识别文本
+
+**订阅话题**：无（直接读取麦克风）
+
+**发布话题**：
+- `/audio/asr_result` (ASRResponse): 语音识别结果
+
+**参数**：
+- `asr_model`: Whisper 模型名称，默认 `base`
+- `wav_path`: 录音文件路径，默认 `test_record.wav`
+
+**使用方法**：
+```bash
+rosrun voice_assistant whisper_asr.py
+# 按回车开始录音，再次按回车停止录音并识别
+```
+
+### 2. Minimax TTS 节点 (`minimax_tts.py`)
+
+**功能**：接收 TTS 请求 → Minimax TTS → 播放语音
+
+**订阅话题**：
+- `/tts_request` (TTSRequest): TTS 请求
+
+**发布话题**：无（直接播放音频）
+
+**参数**：
+- `temp_dir`: 临时文件目录，默认 `audio_temp`
+
+**使用方法**：
+```bash
+rosrun voice_assistant minimax_tts.py
+# 自动等待/tts_request 话题
+```
+
+### 3. MLM 决策中枢节点 (`mlm_decision_node.py`)
+
+**功能**：
+- 接收语音识别文本和 Realsense RGB 图像
+- 调用 Qwen3-VL-8B MLM 进行意图理解和决策
+- 根据技能选择执行不同的处理流程
+
+**订阅话题**：
+- `/audio/asr_result` (ASRResponse): 语音识别结果
+- `/camera/color/image_raw` (Image): Realsense RGB 图像
+
+**发布话题**：
+- `/tts_request` (TTSRequest): TTS 请求
+- `/grasp_target_name` (String): 抓取目标物体名称（方案 1 使用）
+- `/simple_target_name` (String): 抓取目标物体名称（方案 2 使用）
+
+**参数**：
+- `ollama_url`: Ollama API 地址，默认 `http://localhost:11434/v1`
+- `mlm_model`: MLM 模型名称，默认 `qwen3-vl:8b`
+
+**技能选择**：
+- 通过键盘输入选择技能（后续会换成 MCP 技能调用）
+  - `1`: 语音交互技能（支持图像理解、知识问答、闲聊）
+  - `2`: 视觉抓取技能
+
+**使用方法**：
+```bash
+rosrun mlm_decision mlm_decision_node.py
+# 在终端输入 1 或 2 选择技能
+```
+
+### 4. 视觉抓取技能节点
+
+#### 方案 1：GraspNet 完整流程
+
+**组件**：
+- `vision_processor.py`: GroundingDINO + SAM 检测分割
+- `graspnet_generator_with_dl.py`: GraspNet 抓取位姿生成
+
+**订阅话题**：
+- `/camera/color/image_raw` (Image): RGB 图像
+- `/camera/aligned_depth_to_color/image_raw` (Image): 深度图像
+- `/grasp_target_name` (String): 抓取目标物体名称
+
+**发布话题**：
+- `/object_poses` (DetectedObjectArray): 检测结果
+- `/best_grasp_pose` (PoseStamped): 抓取位姿
+
+#### 方案 2：简化方案
+
+**组件**：
+- `visual_grasping_skill.py`: GroundingDINO 检测 + 3D 位置计算
+
+**订阅话题**：
+- `/camera/color/image_raw` (Image): RGB 图像
+- `/camera/aligned_depth_to_color/image_raw` (Image): 深度图像
+- `/simple_target_name` (String): 抓取目标物体名称
+
+**发布话题**：
+- `/best_grasp_pose` (PoseStamped): 抓取位姿
+
+### 5. 抓取执行节点 (`grasp_executor.py`)
+
+**功能**：订阅抓取位姿并执行抓取
+
+**订阅话题**：
+- `/best_grasp_pose` (PoseStamped): 抓取位姿
+
+**发布话题**：无（控制机械臂执行）
+
+## 一键启动
+
+### 完整系统启动
 
 ```bash
-pip install torch numpy requests pyaudio
-pip install openai-whisper
+# 默认使用简化方案（方案 2）
+roslaunch mlm_decision mlm_system.launch
+
+# 使用 GraspNet 完整流程（方案 1）
+roslaunch mlm_decision mlm_system.launch grasp_scheme:=graspnet
 ```
 
-### 系统依赖
+这会启动：
+- 麦克风节点（`wheeltec_mic`）
+- Realsense 相机（RGB + 深度 + 对齐）
+- Whisper ASR 节点
+- Minimax TTS 节点
+- MLM 决策中枢节点
+- 视觉抓取技能（根据 `grasp_scheme` 选择）
+- 抓取执行节点
+
+### 单独启动组件
 
 ```bash
-# 安装PyAudio依赖
-sudo apt-get update
-sudo apt-get install -y portaudio19-dev python3-pyaudio
+# 启动麦克风
+roslaunch voice_assistant mic.launch
 
-# 安装音频播放工具（可选）
-sudo apt-get install -y mpv
+# 启动相机
+roslaunch realsense2_camera rs_camera.launch align_depth:=true
+
+# 启动 Whisper ASR
+rosrun voice_assistant whisper_asr.py
+
+# 启动 Minimax TTS
+rosrun voice_assistant minimax_tts.py
+
+# 启动 MLM 决策中枢
+rosrun mlm_decision mlm_decision_node.py
+
+# 启动视觉抓取技能（方案 2）
+rosrun mlm_decision visual_grasping_skill.py
+
+# 启动抓取执行器
+rosrun rm_scr_demo grasp_executor.py
 ```
 
-## 使用方法
+## 使用流程
 
-### 方法1: 使用独立节点（推荐）
-
-启动整个语音助手系统：
+### 1. 启动系统
 
 ```bash
-roslaunch voice_assistant voice_assistant.launch
+roslaunch mlm_decision mlm_system.launch
 ```
 
-这个命令会启动三个独立的节点：
-1. `audio_publisher` - 音频发布节点
-2. `whisper_asr` - Whisper语音识别节点
-3. `minimax_tts` - Minimax语音合成节点
+### 2. 选择技能
 
-### 方法2: 使用完整系统节点
+在 MLM 决策中枢节点的终端输入：
+- `1`: 语音交互技能（支持图像理解、知识问答、闲聊）
+- `2`: 视觉抓取技能
 
-如果只需要一个统一的节点，可以修改launch文件，启用 `voice_assistant_system` 节点：
+### 3. 语音输入
 
-```xml
-<node name="voice_assistant_system" pkg="voice_assistant" type="voice_assistant_system.py" 
-      output="screen">
-    <param name="asr_model" value="base"/>
-    <param name="group_id" value="1891387212730220598"/>
-    <param name="api_key" value="your_api_key"/>
-</node>
-```
+在 Whisper ASR 节点的终端：
+- 按回车开始录音
+- 说话（如"你能看到什么？"或"把玩偶抓起来"）
+- 再次按回车停止录音并识别
 
-## ROS话题
+### 4. 系统响应
 
-### 输入话题
+- **语音交互技能**：MLM 理解用户意图（支持图像理解、知识问答、闲聊） → TTS 播放回复
+- **视觉抓取技能**：MLM 提取物体 → GroundingDINO 检测 → 生成抓取位姿 → 机械臂执行抓取
 
-- `/audio/audio_data` (voice_assistant/ASRRequest) - 音频数据
-  - `sample_rate`: 采样率 (Hz)
-  - `channels`: 声道数
-  - `duration_ms`: 音频时长 (ms)
-  - `audio_data`: 音频字节数据
+## 模块化优势
 
-- `/tts_request` (voice_assistant/TTSRequest) - TTS请求
-  - `text`: 要合成的文本
-  - `voice_preset`: 语音预设（可选）
+### 1. 低耦合
+- 各节点独立运行，通过 ROS 话题通信
+- 易于替换组件（如更换 ASR 引擎或 TTS 服务）
 
-### 输出话题
+### 2. 高内聚
+- 每个节点专注于单一功能
+- 代码结构清晰，易于维护
 
-- `/audio/asr_result` (voice_assistant/ASRResponse) - ASR结果
-  - `transcript`: 识别的文本
-  - `language`: 语言
-  - `confidence`: 置信度
-  - `success`: 是否成功
+### 3. 灵活部署
+- 可以按需启动部分组件
+- 支持分布式部署（不同节点运行在不同机器上）
 
-- `/tts_response` (voice_assistant/TTSResponse) - TTS响应
-  - `audio_file_path`: 音频文件路径
-  - `success`: 是否成功
+### 4. 易于扩展
+- 添加新技能只需创建新的技能节点
+- 支持多种视觉抓取方案并存
 
-## 消息类型定义
+## 话题汇总
 
-### ASRRequest.msg
+### 核心话题
+- `/audio/asr_result` (ASRResponse): 语音识别结果
+- `/tts_request` (TTSRequest): TTS 请求
+- `/camera/color/image_raw` (Image): RGB 图像
+- `/camera/aligned_depth_to_color/image_raw` (Image): 深度图像
 
-```
-uint32 sample_rate
-uint32 channels
-uint32 duration_ms
-bytes audio_data
-```
-
-### ASRResponse.msg
-
-```
-string transcript
-string language
-float32 confidence
-bool success
-```
-
-### TTSRequest.msg
-
-```
-string text
-string voice_preset
-```
-
-### TTSResponse.msg
-
-```
-string audio_file_path
-bool success
-```
-
-## 配置参数
-
-### audio_publisher
-
-- `sample_rate`: 音频采样率，默认16000 Hz
-- `channels`: 声道数，默认1（单声道）
-- `chunk_size`: 每次读取的音频帧数，默认4000
-
-### whisper_asr
-
-- `model`: Whisper模型大小，默认'base'
-  - 可选值: 'tiny', 'base', 'small', 'medium', 'large'
-  - 模型越大，识别越准确，但需要更多计算资源
-
-### minimax_tts
-
-- `group_id`: Minimax API组ID
-- `api_key`: Minimax API密钥
+### 抓取相关话题
+- `/grasp_target_name` (String): 抓取目标名称（方案 1）
+- `/simple_target_name` (String): 抓取目标名称（方案 2）
+- `/object_poses` (DetectedObjectArray): 检测结果（方案 1）
+- `/best_grasp_pose` (PoseStamped): 抓取位姿（两种方案都发布）
 
 ## 故障排除
 
-### 1. 音频采集失败
+### 1. Whisper ASR 节点无响应
+- 检查麦克风连接是否正常
+- 确认 sounddevice 库已安装
+- 检查音频设备权限
 
-检查麦克风是否正确连接：
+### 2. Minimax TTS 节点播放失败
+- 检查 API Key 是否有效
+- 确认网络连接正常
+- 检查 aplay 是否可用
 
-```bash
-# 列出音频设备
-arecord -l
+### 3. MLM 决策节点响应慢
+- 检查 Ollama 服务是否运行
+- 确认 qwen3-vl:8b 模型已下载
+- 考虑使用更小的模型
 
-# 测试录音
-arecord -D hw:0 -f cd test.wav
-```
+### 4. 视觉抓取失败
+- 检查 GroundingDINO 模型路径
+- 调整检测阈值参数
+- 确保深度图像对齐正确
 
-### 2. Whisper模型加载失败
+## 开发指南
 
-确保已安装PyTorch和Whisper：
+### 添加新技能
 
-```bash
-pip install torch torchvision torchaudio
-pip install openai-whisper
-```
+1. 在 MLM 决策节点中添加技能模式
+2. 创建新的技能处理函数
+3. 实现技能逻辑（可以调用其他节点或创建新节点）
 
-### 3. Minimax API调用失败
+### 更换 ASR 引擎
 
-检查API密钥是否有效：
+1. 修改 `whisper_asr.py` 或创建新的 ASR 节点
+2. 确保发布相同的话题格式（`/audio/asr_result`）
+3. 更新启动文件
 
-```bash
-curl -X POST https://api.minimax.chat/v1/t2a_v2?GroupId=1891387212730220598 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your_api_key" \
-  -d '{"model":"speech-01-turbo","text":"测试","stream":false}'
-```
+### 更换 TTS 服务
 
-### 4. 音频播放失败
-
-安装音频播放工具：
-
-```bash
-sudo apt-get install -y mpv
-```
-
-## 性能优化建议
-
-1. **使用更小的Whisper模型**: 如果计算资源有限，使用`tiny`或`base`模型
-2. **调整采样率**: 根据实际需求调整采样率，较低的采样率可以减少数据量
-3. **批量处理**: 如果需要处理长时间音频，可以考虑批量处理
-
-## 扩展功能
-
-### 添加自定义TTS语音
-
-在`minimax_tts.py`中修改`voice_id`参数：
-
-```python
-"voice_id": "your_custom_voice_id"
-```
-
-### 添加语音唤醒
-
-可以添加一个独立的唤醒词检测节点，在检测到唤醒词后才启动录音。
-
-## 与AIUI系统的对比
-
-| 特性 | AIUI系统 | 新语音助手系统 |
-|------|---------|---------------|
-| 语音识别 | 云端API | 本地Whisper模型 |
-| 语音合成 | 云端API | Minimax云端API |
-| 网络依赖 | 高 | 中等（TTS需要网络） |
-| 隐私性 | 低 | 高（ASR本地处理） |
-| 延迟 | 中等 | 低（ASR）+ 中等（TTS） |
-| 成本 | 按使用量收费 | TTS按使用量收费 |
+1. 修改 `minimax_tts.py` 或创建新的 TTS 节点
+2. 确保订阅相同的话题（`/tts_request`）
+3. 更新启动文件
 
 ## 许可证
 
-本系统遵循ROS许可证。
+MIT License

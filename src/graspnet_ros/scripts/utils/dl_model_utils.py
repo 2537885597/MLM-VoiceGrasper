@@ -241,8 +241,8 @@ def predict_grasps(net, pred_decode, device, color, depth, camera_info, mask=Non
         gg.nms()
         gg.sort_by_score()
         
-        # 10. 限制抓取数量 (demo.py 限制为3个)
-        gg = gg[:3]
+        # 10. 限制抓取数量 (demo.py 限制为1个)
+        gg = gg[:1]
         
         rospy.loginfo_throttle(10, f"生成了 {len(gg)} 个抓取候选 (使用 GraspGroup + NMS + 碰撞检测)")
         return gg, cloud_o3d

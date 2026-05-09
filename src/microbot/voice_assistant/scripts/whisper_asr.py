@@ -2,73 +2,126 @@
 # -*- coding: utf-8 -*-
 
 """
-Whisper语音识别节点
-接收麦克风音频数据，调用Whisper模型进行语音识别
+Whisper 语音识别节点
+功能：麦克风音频 → Whisper ASR → 发布语音识别文本
 """
 
 import rospy
 import numpy as np
 import torch
 import whisper
-from voice_assistant.msg import ASRRequest, ASRResponse
-import tempfile
-import os
+import sounddevice as sd
 import wave
-import struct
+import threading
+from queue import Queue
+from voice_assistant.msg import ASRResponse
+import os
 
-class WhisperASR:
+
+class WhisperASRNode:
     def __init__(self):
-        rospy.init_node('whisper_asr_node', anonymous=True)
-        rospy.loginfo("Whisper语音识别节点启动中...")
-        
-        # 加载Whisper模型
-        model_name = rospy.get_param('~model', 'base')
-        rospy.loginfo(f"加载Whisper {model_name} 模型...")
-        self.model = whisper.load_model(model_name)
-        rospy.loginfo("Whisper模型加载完成")
-        
-        # 订阅麦克风音频数据
-        rospy.Subscriber('/audio/audio_data', ASRRequest, self.audio_callback)
-        
-        # 发布识别结果
-        self.asr_pub = rospy.Publisher('/audio/asr_result', ASRResponse, queue_size=10)
-        
-        rospy.loginfo("Whisper语音识别节点初始化完成")
-    
-    def audio_callback(self, msg):
-        """音频数据回调函数"""
-        rospy.loginfo(f"收到音频数据: 采样率={msg.sample_rate}Hz, 通道数={msg.channels}, 时长={msg.duration_ms}ms")
-        
         try:
-            # 将字节数据转换为numpy数组
-            audio_data = self.bytes_to_numpy(msg.audio_data, msg.sample_rate, msg.channels)
+            rospy.init_node('whisper_asr_node', anonymous=True)
+            rospy.loginfo("Whisper 语音识别节点启动中...")
             
-            # 调用Whisper进行语音识别
-            result = self.model.transcribe(audio_data, language='zh')
+            # 加载 Whisper 模型
+            model_name = rospy.get_param('~asr_model', 'base')
+            rospy.loginfo(f"加载 Whisper {model_name} 模型...")
+            self.asr_model = whisper.load_model(model_name)
+            rospy.loginfo("Whisper 模型加载完成")
+            
+            # 录音参数
+            self.samplerate = 16000
+            self.dtype = "int16"
+            self.channels = 1
+            self.data_queue = Queue()
+            self.stop_event = threading.Event()
+            self.recording_thread = None
+            self.is_listening = False
+            
+            # 录音文件路径
+            self.wav_path = rospy.get_param('~wav_path', '/home/rm/realman_ws/src/microbot/voice_assistant/scripts/audio_temp/test_record.wav')
             
             # 发布识别结果
-            self.publish_result(result['text'], msg.sample_rate)
+            self.asr_pub = rospy.Publisher('/audio/asr_result', ASRResponse, queue_size=10)
+            
+            rospy.loginfo("Whisper 语音识别节点初始化完成")
+            rospy.loginfo("按回车键开始录音...")
             
         except Exception as e:
-            rospy.logerr(f"语音识别失败: {str(e)}")
-            self.publish_result("", 0, success=False, error=str(e))
+            rospy.logfatal("❌ 节点初始化失败！")
+            rospy.logfatal(f"错误信息：{str(e)}")
+            import traceback
+            traceback.print_exc()
+            rospy.signal_shutdown("初始化失败")
     
-    def bytes_to_numpy(self, audio_bytes, sample_rate, channels):
-        """将字节数据转换为numpy数组"""
-        # 假设音频数据是16位PCM
-        audio_np = np.frombuffer(audio_bytes, dtype=np.int16)
+    def start_recording(self):
+        """开始录音"""
+        self.is_listening = True
+        self.data_queue = Queue()
+        self.stop_event.clear()
         
-        # 转换为浮点数并归一化
-        audio_np = audio_np.astype(np.float32) / 32768.0
-        
-        # 如果是立体声，转换为单声道
-        if channels == 2:
-            audio_np = audio_np.reshape(-1, 2).mean(axis=1)
-        
-        return audio_np
+        self.recording_thread = threading.Thread(
+            target=self.record_audio,
+            args=(self.stop_event, self.data_queue),
+        )
+        self.recording_thread.start()
+        rospy.loginfo(">>>>> 开始录音........")
     
-    def publish_result(self, transcript, sample_rate, success=True, language='zh', confidence=0.95, error=""):
-        """发布识别结果"""
+    def stop_recording(self):
+        """停止录音并处理音频"""
+        if self.is_listening:
+            self.stop_event.set()
+            self.recording_thread.join()
+            self.is_listening = False
+            rospy.loginfo(">>>>> 停止录音........")
+            self.process_recorded_audio()
+    
+    def record_audio(self, stop_event, data_queue):
+        """录音线程"""
+        def callback(indata, frames, time, status):
+            if status:
+                rospy.logwarn(f"警告：{status}")
+            data_queue.put(bytes(indata))
+        
+        with sd.RawInputStream(
+            samplerate=self.samplerate,
+            dtype=self.dtype,
+            channels=self.channels,
+            callback=callback
+        ):
+            while not stop_event.is_set():
+                continue
+    
+    def save_to_wav(self):
+        """保存录音到 WAV 文件"""
+        audio_data = b"".join(self.data_queue.queue)
+        with wave.open(self.wav_path, "wb") as wf:
+            wf.setnchannels(self.channels)
+            wf.setsampwidth(2)
+            wf.setframerate(self.samplerate)
+            wf.writeframes(audio_data)
+        rospy.loginfo(f"✅ 已保存：{self.wav_path}")
+    
+    def process_recorded_audio(self):
+        """处理录制的音频数据"""
+        try:
+            self.save_to_wav()
+            rospy.loginfo("正在调用 Whisper 进行语音识别...")
+            result = self.asr_model.transcribe(self.wav_path, language='zh', fp16=False)
+            user_text = result['text'].strip()
+            
+            rospy.loginfo(f"识别结果：{user_text}")
+            self.publish_asr_result(user_text)
+            
+        except Exception as e:
+            rospy.logerr(f"语音识别失败：{str(e)}")
+            import traceback
+            traceback.print_exc()
+            self.publish_asr_result("", success=False, error=str(e))
+    
+    def publish_asr_result(self, transcript, success=True, language='zh', confidence=0.95, error=""):
+        """发布 ASR 结果"""
         msg = ASRResponse()
         msg.transcript = transcript
         msg.language = language
@@ -76,17 +129,24 @@ class WhisperASR:
         msg.success = success
         
         if not success:
-            rospy.logerr(f"语音识别失败: {error}")
-        else:
-            rospy.loginfo(f"识别结果: {transcript}")
+            rospy.logerr(f"语音识别失败：{error}")
         
         self.asr_pub.publish(msg)
 
-def main():
+
+if __name__ == "__main__":
     try:
-        asr = WhisperASR()
-        rospy.spin()
+        node = WhisperASRNode()
+        while not rospy.is_shutdown():
+            input()  # 等待回车开始录音
+            node.start_recording()
+            input()  # 等待回车停止录音
+            node.stop_recording()
     except rospy.ROSInterruptException:
-        pass
+        rospy.loginfo("节点被中断")
+    except KeyboardInterrupt:
+        rospy.loginfo("节点被中断")
     except Exception as e:
-        rospy.logerr(f"节点启动失败: {str(e)}")
+        rospy.logerr(f"节点运行失败：{str(e)}")
+        import traceback
+        traceback.print_exc()

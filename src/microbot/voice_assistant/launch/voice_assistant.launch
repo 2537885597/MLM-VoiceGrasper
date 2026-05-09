@@ -13,10 +13,10 @@
     </node>
 
     <!-- 语音控制节点（xf_mic_asr_offline_line） -->
-    <node name="voice_control" pkg="xf_mic_asr_offline_line" type="voice_control" 
+    <!-- <node name="voice_control" pkg="xf_mic_asr_offline_line" type="voice_control" 
           output="screen">
         <param name="seconds_per_order" value="2"/>
-    </node>
+    </node> -->
 
     <!-- 语音对话节点（完整流程） -->
     <node name="voice_conversation_node" pkg="voice_assistant" type="voice_conversation_node.py" 

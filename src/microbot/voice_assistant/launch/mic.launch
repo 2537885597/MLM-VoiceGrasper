@@ -1,0 +1,14 @@
+<launch>
+    <!-- 
+    麦克风唤醒节点启动文件
+    -->
+    
+    <arg name="usart_port_name" default="/dev/wheeltec_mic"/>
+    
+    <!-- 麦克风唤醒节点（xf_mic_asr_offline_line） -->
+    <node name="wheeltec_mic" pkg="xf_mic_asr_offline_line" type="wheeltec_mic" 
+          output="screen">
+        <param name="usart_port_name" type="string" value="$(arg usart_port_name)"/>
+    </node>
+
+</launch>

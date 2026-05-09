@@ -1,44 +1,77 @@
 # -*- coding: utf-8 -*-
 """
-眼在手外 用采集到的图片信息和机械臂位姿信息计算 相机坐标系相对于机械臂基座标的 旋转矩阵和平移向量
-A2^{-1}*A1*X=X*B2*B1^{−1}
-新增：手眼标定结果 保存/加载 功能
+眼在手外（Eye-to-Hand）手眼标定：
+利用采集到的棋盘图像 + 机械臂位姿，计算相机坐标系相对于机械臂基座坐标系的位姿（R_cam2base, t_cam2base）
+
+关系式（相对运动形式）可写为：
+A2^{-1} * A1 * X = X * B2 * B1^{-1}
+
+新增功能：
+- 手眼标定结果保存/加载（仅 YAML 格式）
 """
 
 import os
+import re
 import cv2
+import yaml
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from save_poses2matrix import poses2_main
-import yaml  # 用于工程格式保存，需安装：pip install pyyaml
 
 np.set_printoptions(precision=8, suppress=True)
 
 # ====================== 路径配置 ======================
-#手眼标定采集的标定版图片所在路径
+# 手眼标定采集的标定板图片路径
 images_path = r'/home/rm/realman_ws/src/rm_scr_robot/rm_scr_demo/scripts/images'
-#采集标定板图片时对应的机械臂末端的位姿 从 第一行到最后一行 需要和采集的标定板的图片顺序进行对应
+# 采集标定板图片时对应机械臂末端位姿文件（顺序需与图片一一对应）
 file_path = r'/home/rm/realman_ws/src/rm_scr_robot/rm_scr_demo/scripts/images/poses.txt'
+
 # 标定结果保存路径（脚本同级目录）
 SAVE_PATH = os.path.join(os.path.dirname(__file__), "hand_eye_calib_result")
-os.makedirs(SAVE_PATH, exist_ok=True)  # 自动创建文件夹
+os.makedirs(SAVE_PATH, exist_ok=True)
+
+# poses2_main 生成的 csv 路径（建议与本脚本同目录，避免 cwd 影响）
+ROBOT_POSE_CSV = os.path.join(os.path.dirname(__file__), "RobotToolPose.csv")
+
+
+def _is_valid_rotation_matrix(Rm: np.ndarray, atol: float = 1e-3) -> bool:
+    """检查旋转矩阵正交性和行列式。"""
+    if Rm.shape != (3, 3):
+        return False
+    should_be_I = Rm.T @ Rm
+    I = np.eye(3)
+    return np.allclose(should_be_I, I, atol=atol) and np.isclose(np.linalg.det(Rm), 1.0, atol=atol)
+
+
+def _collect_image_indices(img_dir: str):
+    """收集目录下数字命名的 jpg：0.jpg, 1.jpg ...，并按数字升序返回索引列表。"""
+    if not os.path.isdir(img_dir):
+        raise FileNotFoundError(f"图片目录不存在: {img_dir}")
+
+    indices = []
+    for name in os.listdir(img_dir):
+        m = re.fullmatch(r"(\d+)\.jpg", name, re.IGNORECASE)
+        if m:
+            indices.append(int(m.group(1)))
+    indices.sort()
+    return indices
+
 
 # ====================== 标定核心函数 ======================
-def calibrate_eye_in_hand():
+def calibrate_eye_out_hand():
     """手眼标定主函数，返回旋转矩阵、平移向量、4x4齐次矩阵"""
     # 角点的个数以及棋盘格间距
-    XX, YY = 4, 4 # 11 #标定板的中长度对应的角点的个数, # 8  #标定板的中宽度对应的角点的个数
+    XX, YY = 7, 4 # 棋盘格内角点数量（**必须和实际标定板一致**）
     L = 0.03 # 标定板一格的长度 单位为米
-    # 设置寻找亚像素角点的参数，采用的停止准则是最大循环次数30和最大误差容限0.001
+    # 设置寻找亚像素角点的参数
     criteria = (cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS, 30, 0.001)
 
     # 标定板角点的3D位置
     objp = np.zeros((XX * YY, 3), np.float32)
-    objp[:, :2] = np.mgrid[0:XX, 0:YY].T.reshape(-1, 2) * L  # 将世界坐标系建在标定板上，所有点的Z坐标全部为0，所以只需要赋值x和y
-    obj_points, img_points = [], []  # 存储3D点和2D角点的坐标
+    objp[:, :2] = np.mgrid[0:XX, 0:YY].T.reshape(-1, 2) * L
+    obj_points, img_points = [], []
 
-    # 遍历图片 标定好的图片在images_path路径下，从0.jpg到x.jpg
-    # 一次采集的图片最多不超过50张，我们遍历从0.jpg到50.jpg ，选择能够读取的到的图片
+    # 遍历有效图片
     for i in range(50):
         img_path = os.path.join(images_path, f"{i}.jpg")
         if not os.path.exists(img_path):
@@ -49,104 +82,144 @@ def calibrate_eye_in_hand():
         if ret:
             obj_points.append(objp)
             corners2 = cv2.cornerSubPix(gray, corners, (5, 5), (-1, -1), criteria)
-            img_points.append(corners2 if [corners2] else corners)
+            img_points.append(corners2)
 
     N = len(img_points)
-    # 相机标定
+    if N == 0:
+        raise ValueError("未检测到有效标定板图片！")
+    print(f"有效标定图片数量：{N}")
+
+    # 相机标定（获取内参+外参）
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, gray.shape[::-1], None, None)
     print("内参矩阵:\n", mtx)
     print("畸变系数:\n", dist)
     print("-" * 50)
 
-    # 读取机械臂位姿
+    # ====================== 【核心修正1】旋转向量 → 旋转矩阵 ======================
+    # OpenCV手眼标定强制要求输入旋转矩阵，不能直接传旋转向量rvecs！
+    R_target2cam = []  # 标定板 -> 相机 的旋转矩阵
+    t_target2cam = []  # 标定板 -> 相机 的平移向量
+    for rvec, tvec in zip(rvecs, tvecs):
+        rmat, _ = cv2.Rodrigues(rvec)  # 旋转向量转矩阵
+        R_target2cam.append(rmat)
+        t_target2cam.append(tvec)
+
+    # 读取机械臂位姿（末端 -> 基座，符合OpenCV输入要求）
     poses2_main(file_path)
-    tool_pose = np.loadtxt('RobotToolPose.csv', delimiter=',')
-    R_tool, t_tool = [], []
+    tool_pose = np.loadtxt(ROBOT_POSE_CSV, delimiter=',')  # 修复硬编码路径
+    R_gripper2base = []  # 末端 -> 基座
+    t_gripper2base = []
     for i in range(N):
-        R_tool.append(tool_pose[0:3, 4*i:4*i+3])
-        t_tool.append(tool_pose[0:3, 4*i+3])
+        R_gripper2base.append(tool_pose[0:3, 4*i:4*i+3])
+        t_gripper2base.append(tool_pose[0:3, 4*i+3])
 
-    # 手眼标定（TSAI算法）
-    R_cam2gripper, t_cam2gripper = cv2.calibrateHandEye(R_tool, t_tool, rvecs, tvecs, cv2.CALIB_HAND_EYE_TSAI)
-    
-    # 生成4x4齐次变换矩阵（相机 -> 机械臂末端  眼在手外标准格式）
+    # ====================== 【核心修正2】正确调用眼在手外标定 ======================
+    # 官方参数：calibrateHandEye(R_gripper2base, t_gripper2base, R_target2cam, t_target2cam)
+    # 眼在手外 → 返回值：相机 -> 机械臂基坐标系（最终需要的结果）
+    R_cam2base, t_cam2base = cv2.calibrateHandEye(
+        R_gripper2base, t_gripper2base,
+        R_target2cam, t_target2cam,
+        cv2.CALIB_HAND_EYE_TSAI
+    )
+
+    # 生成4x4齐次变换矩阵（相机 -> 机械臂基座 ✅ 眼在手外最终结果）
     homo_mat = np.eye(4)
-    homo_mat[:3, :3] = R_cam2gripper
-    homo_mat[:3, 3] = t_cam2gripper.reshape(3)
+    homo_mat[:3, :3] = R_cam2base
+    homo_mat[:3, 3] = t_cam2base.reshape(3)
 
-    print("旋转矩阵 R:\n", R_cam2gripper)
-    print("平移向量 t:\n", t_cam2gripper)
-    return R_cam2gripper, t_cam2gripper, homo_mat
+    print("\n✅ 眼在手外标定结果（相机 → 机械臂基坐标系）")
+    print("旋转矩阵 R:\n", R_cam2base)
+    print("平移向量 t:\n", t_cam2base)
+    return R_cam2base, t_cam2base, homo_mat
+
 
 # ====================== 标定结果保存函数 ======================
 def save_hand_eye_calib(R_mat, t_vec, homo_mat):
     """
-    保存手眼标定结果
-    :param R_mat: 3x3旋转矩阵
-    :param t_vec: 3x1平移向量
-    :param homo_mat: 4x4齐次矩阵
+    保存手眼标定结果（仅 YAML）
+    :param R_mat: 3x3 旋转矩阵
+    :param t_vec: 3x1 平移向量
+    :param homo_mat: 4x4 齐次矩阵
     """
-    # 1. numpy二进制格式（加载最快，推荐使用）
-    np.save(os.path.join(SAVE_PATH, "rotation_matrix.npy"), R_mat)
-    np.save(os.path.join(SAVE_PATH, "translation_vector.npy"), t_vec)
-    np.save(os.path.join(SAVE_PATH, "homogeneous_matrix.npy"), homo_mat)
+    rotation = R.from_matrix(R_mat)
+    qx, qy, qz, qw = rotation.as_quat()  # scipy 顺序: x,y,z,w
 
-    # 2. 文本格式（可读，方便查看）
-    np.savetxt(os.path.join(SAVE_PATH, "homogeneous_matrix.txt"), homo_mat, fmt='%.8f')
-
-    # 3. YAML格式（工程部署常用）
-    quat = R.from_matrix(R_mat).as_quat()  # 四元数 [qx,qy,qz,qw]
     calib_dict = {
-        "rotation_matrix": R_mat.tolist(),
-        "translation_vector": t_vec.flatten().tolist(),
-        "homogeneous_matrix": homo_mat.tolist(),
-        "quaternion": {"qx": quat[0], "qy": quat[1], "qz": quat[2], "qw": quat[3]},
-        "translation": {"x": t_vec[0,0], "y": t_vec[1,0], "z": t_vec[2,0]}
+        "rotation_matrix": [[float(v) for v in row] for row in R_mat.tolist()],
+        "translation_vector": [float(v) for v in t_vec.flatten().tolist()],
+        "homogeneous_matrix": [[float(v) for v in row] for row in homo_mat.tolist()],
+        "quaternion": {
+            "qx": float(qx),
+            "qy": float(qy),
+            "qz": float(qz),
+            "qw": float(qw)
+        },
+        "translation": {
+            "x": float(t_vec[0, 0]),
+            "y": float(t_vec[1, 0]),
+            "z": float(t_vec[2, 0])
+        }
     }
-    with open(os.path.join(SAVE_PATH, "calib_config.yaml"), "w", encoding="utf-8") as f:
-        yaml.dump(calib_dict, f, default_flow_style=False, sort_keys=False)
 
-    print(f"\n✅ 标定结果已保存至：{SAVE_PATH}")
+    yaml_path = os.path.join(SAVE_PATH, "calib_config.yaml")
+    with open(yaml_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(
+            calib_dict,
+            f,
+            allow_unicode=True,
+            default_flow_style=False,
+            sort_keys=False
+        )
+
+    print(f"\n✅ 标定结果已保存至：{yaml_path}")
+
 
 # ====================== 标定结果加载函数 ======================
-def load_hand_eye_calib(use_homo=True):
+def load_hand_eye_calib():
     """
-    加载手眼标定结果
-    :param use_homo: True=直接加载4x4齐次矩阵，False=分开加载R和t
-    :return: 齐次矩阵 / (旋转矩阵, 平移向量)
+    从 YAML 加载手眼标定结果
+    :return: 4x4 齐次矩阵
     """
-    if use_homo:
-        homo_mat = np.load(os.path.join(SAVE_PATH, "homogeneous_matrix.npy"))
-        return homo_mat
-    else:
-        R_mat = np.load(os.path.join(SAVE_PATH, "rotation_matrix.npy"))
-        t_vec = np.load(os.path.join(SAVE_PATH, "translation_vector.npy"))
-        return R_mat, t_vec
+    yaml_path = os.path.join(SAVE_PATH, "calib_config.yaml")
+    if not os.path.exists(yaml_path):
+        raise FileNotFoundError(f"YAML 标定文件未找到: {yaml_path}")
+
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if "homogeneous_matrix" not in data:
+        raise KeyError(f"'homogeneous_matrix' not found in {yaml_path}")
+
+    homo_mat = np.array(data["homogeneous_matrix"], dtype=np.float64)
+    if homo_mat.shape != (4, 4):
+        raise ValueError(f"homogeneous_matrix 形状错误: {homo_mat.shape}，应为 (4,4)")
+
+    print(f"[INFO] 从 {yaml_path} 加载手眼标定矩阵")
+    if "translation" in data:
+        tx = data["translation"].get("x", 0.0)
+        ty = data["translation"].get("y", 0.0)
+        tz = data["translation"].get("z", 0.0)
+        print(f"[INFO] 标定结果: x={tx:.6f}, y={ty:.6f}, z={tz:.6f}")
+
+    return homo_mat
+
 
 # ====================== 主程序 ======================
 if __name__ == '__main__':
-    # 1. 执行标定（第一次运行）
-    R_mat, t_vec, homo_mat = calibrate_eye_in_hand()
-    
-    # 2. 保存标定结果（只需执行一次，后续直接加载）
+    # 1) 执行标定（首次运行）
+    R_mat, t_vec, homo_mat = calibrate_eye_out_hand()
+
+    # 2) 保存标定结果（后续可直接加载）
     save_hand_eye_calib(R_mat, t_vec, homo_mat)
 
-    # 3. 输出四元数+平移（原功能保留）
-    rotation = R.from_matrix(R_mat)
-    quaternion = rotation.as_quat()
-    qw, qx, qy, qz = quaternion
+    # 3) 输出四元数 + 平移
+    qx, qy, qz, qw = R.from_matrix(R_mat).as_quat()
     x, y, z = t_vec.flatten()
-    print(f"\n最终标定结果：")
+    print("\n最终标定结果（相机→基座）：")
     print(f"qw: {qw}\nqx: {qx}\nqy: {qy}\nqz: {qz}\nx: {x}\ny: {y}\nz: {z}")
 
-    # ============== 后续使用：直接加载标定结果 ==============
-    print("\n" + "="*50)
+    # 4) 测试加载
+    print("\n" + "=" * 50)
     print("🔍 测试加载标定结果：")
-    # 方式1：加载4x4齐次矩阵（最常用）
     loaded_homo = load_hand_eye_calib()
-    print("加载的4x4齐次变换矩阵：\n", loaded_homo)
-    
-    # 方式2：单独加载旋转矩阵+平移向量
-    # loaded_R, loaded_t = load_hand_eye_calib(use_homo=False)
-    # print("加载的旋转矩阵：\n", loaded_R)
-    # print("加载的平移向量：\n", loaded_t)
+    print("加载的 4x4 齐次变换矩阵：\n", loaded_homo)

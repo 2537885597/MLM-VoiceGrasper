@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+    MLM 决策中枢启动文件
+    集成 Qwen3-VL-8B 多模态大模型，实现意图理解和决策
+    功能：
+    1. 图像描述：对 RGB 图像进行描述并生成语音回复
+    2. 视觉抓取：提取抓取意图，调用视觉抓取流程
+    -->
+
+    <!-- MLM 决策中枢节点 -->
+    <node name="mlm_decision_node" pkg="mlm_decision" type="mlm_decision_node.py" 
+          output="screen">
+        <!-- Ollama 配置 -->
+        <param name="ollama_url" value="http://localhost:11434/v1"/>
+        <param name="mlm_model" value="qwen3-vl:8b"/>
+    </node>
+
+</launch>

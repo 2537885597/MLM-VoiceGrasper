@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- 
+    完整系统一键启动文件
+    启动所有组件：麦克风、相机、Whisper ASR、Minimax TTS、MLM 决策中枢、视觉抓取技能、机械臂抓取执行
+    
+    系统架构：
+    1. 麦克风 → 语音识别 (Whisper ASR)
+    2. 语音识别文本 + Realsense RGB 图像 → MLM 决策中枢 (Qwen3-VL-8B)
+    3. MLM 根据技能选择执行：
+       - 图像描述：生成描述 → TTS → 播放
+       - 视觉抓取：提取物体 → GroundingDINO → 机械臂抓取
+    
+    视觉抓取方案选择：
+    - 方案 1（graspnet）：原方案，使用 vision_processor + graspnet_generator 完整流程
+    - 方案 2（simplified）：简化方案，使用 visual_grasping_skill 直接生成抓取位姿
+    -->
+
+    <!-- 1、参数配置 -->
+    <arg name="mlm_model" default="qwen3-vl:8b"/>  <!-- or Qwen3.5-0.8B 模型 -->
+    <arg name="asr_model" default="base"/>
+    <arg name="use_camera" default="true"/>
+    <arg name="use_mic" default="true"/>
+
+    <!-- 视觉抓取方案选择：graspnet 或 simplified -->
+    <arg name="grasp_scheme" default="simplified"/>
+
+    <!-- 2、启动麦克风节点（如果使用） -->
+    <include if="$(arg use_mic)" file="$(find voice_assistant)/launch/mic.launch">
+        <arg name="usart_port_name" value="/dev/wheeltec_mic"/>
+    </include>
+
+    <!-- 3、启动Realsense相机（如果使用） -->
+    <include if="$(arg use_camera)" file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="align_depth" value="true"/>
+    </include>
+
+    <!-- 4、Whisper 语音识别节点（需要独立终端接收键盘输入） -->
+    <node name="whisper_asr" pkg="voice_assistant" type="whisper_asr.py" 
+          output="screen" launch-prefix="gnome-terminal -e">
+        <param name="asr_model" value="$(arg asr_model)"/>
+        <param name="wav_path" value="/home/rm/realman_ws/src/microbot/voice_assistant/scripts/audio_temp/test_record.wav"/>
+    </node>
+
+    <!-- 5、Minimax 语音合成节点 -->
+    <node name="minimax_tts" pkg="voice_assistant" type="minimax_tts.py" output="screen">
+        <param name="temp_dir" value="/home/rm/realman_ws/src/microbot/voice_assistant/scripts/audio_temp"/>
+    </node>
+
+    <!-- 6、MLM 决策中枢节点（需要独立终端接收键盘输入） -->
+    <node name="mlm_decision_node" pkg="mlm_decision" type="mlm_decision_node.py" 
+          output="screen" launch-prefix="gnome-terminal -e">
+        <param name="ollama_url" value="http://localhost:11434/v1"/>
+        <param name="mlm_model" value="$(arg mlm_model)"/>
+    </node>
+
+    <!-- 7、方案 1：GraspNet 完整流程（vision_processor + graspnet_generator） -->
+    <include if="$(eval arg('grasp_scheme') == 'graspnet')" 
+             file="$(find graspnet_ros)/launch/vision_graspnet_generator.launch">
+        <!-- 通过 remap 将 MLM 发布的抓取目标传递给 vision_processor -->
+        <remap from="/grasp_target_name" to="/vision_processor/text_prompt"/>
+        <param name="trigger_vision" value="False"/>
+    </include>
+
+    <!-- 8、方案 2：简化视觉抓取技能（GroundingDINO + 直接生成抓取位姿） -->
+    <node if="$(eval arg('grasp_scheme') == 'simplified')" 
+          name="visual_grasping_skill" pkg="mlm_decision" type="visual_grasping_skill.py" 
+          output="screen">
+        <param name="grounding_dino_model" value="GroundingDINO_SwinT_OGC"/>
+        <param name="model_dir" value="/home/rm/realman_ws/src/graspnet_ros/models"/>
+        <param name="box_threshold" value="0.35"/>
+        <param name="text_threshold" value="0.25"/>
+    </node>
+
+    <!-- 9、抓取执行节点（两种方案都使用） -->
+    <node name="grasp_executor" pkg="rm_scr_demo" type="grasp_executor.py" 
+          output="screen">
+        <!-- 订阅 /best_grasp_pose 话题获取抓取位姿 
+        可以使用默认抓取位姿调试：rostopic pub /grasp_command std_msgs/String "data: 'grasp'" -1 -->
+    </node>
+
+</launch>
